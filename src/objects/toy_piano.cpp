@@ -31,6 +31,7 @@ public:
         for (auto i : step(800))
         {
             const float size = Pow(fft.buffer[i], 0.6f) * 1200;
+            RectF{Arg::bottomLeft(i, 600), 1, size}.draw(HSV{240 - i});
             if (max_freq < size && size > cut_filter)
             {
                 max_freq_size = size;
@@ -42,8 +43,13 @@ public:
                 is_down = true;
             }
         }
+        Rect{0, 600 - cut_filter, 800, 2}.draw();
 
-        return convertScaleToString(convertHertzToScale(max_freq * fft.resolution));
+        // A0は無音なので無視
+        Note note = convertScaleToString(convertHertzToScale(max_freq * fft.resolution));
+        last_note = note;
+
+        return last_note;
     }
 
     bool isDown()
@@ -51,13 +57,23 @@ public:
         return is_down;
     }
 
+    bool isDownStart()
+    {
+        bool note = last_note != prev_note;
+        bool pitch = true;
+        prev_note = last_note;
+        return note and pitch;
+    }
+
 private:
     const MicrophoneInfo info = System::EnumerateMicrophones()[0];
     const Microphone mic{5s, Loop::Yes, StartImmediately::Yes};
     FFTResult fft;
 
-    size_t cut_filter = 416;    // カットする周波数の大きさの基準
-    bool is_down = false;       // 鍵盤が押されているか
+    size_t cut_filter = 550; // カットする周波数の大きさの基準
+    bool is_down = false;    // 鍵盤が押されているか
+    Note last_note;          // 現在押されている鍵盤
+    Note prev_note{U"A", 0}; // 一つ前に押されていた鍵盤
 
     // ヘルツから音階への変換(110Hzが基準)
     float convertHertzToScale(float hertz)

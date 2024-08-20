@@ -15,8 +15,15 @@ void Main()
 	{
 		Note note = toyPiano.analize();
 
-		ClearPrint();
-		if (toyPiano.isDown())
-			Print << U"{} {}"_fmt(note.key, note.oct);
+		if (note == Note{U"A", 3})
+		{
+			ClearPrint();
+		}
+		if (toyPiano.isDownStart())
+		{
+			// if (not(note.key == U"A" and note.oct == 0))
+			if (note != Note{U"A", 0})
+				Print << U"{} {}"_fmt(note.key, note.oct);
+		}
 	}
 }
