@@ -28,10 +28,11 @@ public:
         mic.fft(fft);
 
         // フィルタリング
-        for (auto i : step(800))
+        for (auto i : step(1200))
         {
             const float size = Pow(fft.buffer[i], 0.6f) * 1200;
-            RectF{Arg::bottomLeft(i, 600), 1, size}.draw(HSV{240 - i});
+            // RectF{Arg::bottomLeft(i, 600), 1, size}.draw(HSV{240 - i});
+            // RectF{Arg::bottomLeft(i, 600), 1, size}.draw(HSV{i / 2});
             if (max_freq < size && size > cut_filter)
             {
                 max_freq_size = size;
@@ -43,7 +44,7 @@ public:
                 is_down = true;
             }
         }
-        Rect{0, 600 - cut_filter, 800, 2}.draw();
+        // Rect{0, 600 - cut_filter, 800, 2}.draw();
 
         return convertScaleToString(convertHertzToScale(max_freq * fft.resolution));
     }
