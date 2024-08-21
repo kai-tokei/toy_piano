@@ -46,7 +46,10 @@ public:
         }
         // Rect{0, 600 - cut_filter, 800, 2}.draw();
 
-        return convertScaleToString(convertHertzToScale(max_freq * fft.resolution));
+        Note note = convertScaleToString(convertHertzToScale(max_freq * fft.resolution));
+        note.size = max_freq_size;
+
+        return note;
     }
 
     bool isDown()
@@ -59,7 +62,7 @@ private:
     const Microphone mic{5s, Loop::Yes, StartImmediately::Yes};
     FFTResult fft;
 
-    size_t cut_filter = 400; // カットする周波数の大きさの基準
+    size_t cut_filter = 500; // カットする周波数の大きさの基準
     bool is_down = false;    // 鍵盤が押されているか
 
     // ヘルツから音階への変換(110Hzが基準)
@@ -71,7 +74,7 @@ private:
             return (12.0 * log(size_t(hertz) / 110.0) / log(2.0));
     }
 
-    // 数値音階を文字列で表す
+    // 数値音階をNoteで表す
     Note convertScaleToString(float scale)
     {
         // 十二音階の何倍の精度で音階を見るか

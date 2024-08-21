@@ -11,10 +11,29 @@ void Main()
 {
 	const Font font{50};
 	ToyPiano toyPiano;
+	Note buffer{U"A", 0};
+	Note note;
+	double input_timer = 0;
 
 	while (System::Update())
 	{
-		Note note = toyPiano.analize();
-		font(U"{} {}"_fmt(note.key, note.oct)).draw(20, 20);
+		input_timer += Scene::DeltaTime();
+
+		buffer = note;
+		note = toyPiano.analize();
+		if (note == Note{U"A", 0})
+		{
+			if (input_timer > 1)
+			{
+				ClearPrint();
+				input_timer = 0;
+			}
+		}
+		else if (note != buffer)
+		{
+			Print << U"{} {} {}"_fmt(note.key, note.oct, note.size);
+			input_timer = 0;
+		}
+		font(U"{} {} {}"_fmt(note.key, note.oct, note.size)).draw(20, 20);
 	}
 }

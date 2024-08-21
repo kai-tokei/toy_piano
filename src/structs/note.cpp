@@ -5,14 +5,15 @@ struct Note
 {
     String key;
     size_t oct;
+    float size;
 
     bool operator==(const Note &note) const
     {
-        return (note.key == key) and (note.oct == oct);
+        return ((note.key == key) and (note.oct == oct));
     }
 
     bool operator!=(const Note &note) const
     {
-        return (note.key != key) and (note.oct != oct);
+        return ((note.key != key) or (note.oct != oct));
     }
 };
