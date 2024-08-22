@@ -25,7 +25,7 @@ void Main()
 		{
 			if (note == Note{U"A", 0})
 			{
-				if (input_timer > 1)
+				if (input_timer > 0.5)
 				{
 					ClearPrint();
 					input_timer = 0;
