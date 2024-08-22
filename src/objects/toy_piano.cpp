@@ -7,19 +7,12 @@ class ToyPiano
 public:
     ToyPiano()
     {
-        // マイクがなかったら、エラー
-        if (System::EnumerateMicrophones().isEmpty())
-            throw Error{U"No microphone is connected"};
-
-        // 録音されていなかったら、エラー
-        if (not mic.isRecording())
-            throw Error{U"Failed to start recording"};
-
-        calPianoHz();
+        checkMicrophone();
+        calculatePianoFrequencies();
     }
 
     // マイクの拾ったピアノの音から、ある一定の閾値を超えたNoteを返す
-    Array<Note> analize()
+    Array<Note> analyze()
     {
         const size_t qSample = 1200;                       // サンプル数
         const size_t perSample = qSample / piano_keys_num; // 1区画ごとのサンプル数
@@ -49,16 +42,9 @@ public:
             }
             // 閾値を超えた場合、その区画の最大周波数を Note として記録
             if (max_freq_size > cut_filter)
-            {
-                Note note = convertScaleToString(convertHertzToScale(max_freq * fft.resolution));
-                note.size = max_freq_size;
-                notes.push_back(note);
-            }
+                notes.push_back(createNoteFromFrequency(max_freq, max_freq_size));
         }
-        // 音階ごとにガイド線を引く
-        for (auto x : keys)
-            Line{x, 0, x, 800}.draw(2);
-        Rect{0, 600 - cut_filter, 800, 2}.draw();
+        drawGuidelines();
 
         if (notes.size() == 0)
             notes.push_back(Note{U"A", 0});
@@ -80,6 +66,26 @@ private:
     bool is_down = false;             // 鍵盤が押されているか
     const size_t piano_keys_num = 88; // ピアノの鍵盤数
 
+    // マイクの初期化
+    void checkMicrophone()
+    {
+        if (System::EnumerateMicrophones().isEmpty())
+            throw Error{U"No microphone is connected"};
+
+        if (!mic.isRecording())
+            throw Error{U"Failed to start recording"};
+    }
+
+    // 周波数からNoteを作成
+    Note createNoteFromFrequency(size_t frequencyIndex, float size)
+    {
+        const float hertz = frequencyIndex * fft.resolution;
+        const float scale = convertHertzToScale(hertz);
+        Note note = convertScaleToString(scale);
+        note.size = size;
+        return note;
+    }
+
     // ヘルツから音階への変換(110Hzが基準)
     float convertHertzToScale(float hertz)
     {
@@ -90,32 +96,28 @@ private:
     }
 
     // ピアノの半音ごとの周波数を計算
-    void calPianoHz()
+    void calculatePianoFrequencies()
     {
-        for (auto i : step(88))
+        for (auto i : step(piano_keys_num))
         {
-            // 各音階の周波数を計算
             double hz = 27.500 * Pow(Pow(2, 1.0 / 12.0), i);
-            // 4分の1音ずらしてから配列に追加
-            double adjustedHz = hz; /// Pow(Pow(2, 1.0 / 24.0), 0.5);
-            keys.push_back(adjustedHz);
+            keys.push_back(hz);
         }
+    }
+
+    // ガイドラインを描画
+    void drawGuidelines() const
+    {
+        for (auto x : keys)
+        {
+            Line{x, 0, x, 800}.draw(2);
+        }
+        Rect{0, 600 - cut_filter, 800, 2}.draw();
     }
 
     // 数値音階をNoteで表す
     Note convertScaleToString(float scale)
     {
-        // 十二音階の何倍の精度で音階を見るか
-        size_t precision = 2;
-
-        size_t s = int(scale);
-        if (scale - s >= 0.5)
-            s += 1;
-        s *= precision;
-
-        size_t smod = s % (12 * precision); // 音階
-        size_t soct = s / (12 * precision); // オクターブ
-
         const Array<String> value = {
             U"A",
             U"A+",
@@ -142,6 +144,17 @@ private:
             U"G#",
             U"G#+",
         };
+
+        // 十二音階の何倍の精度で音階を見るか
+        size_t precision = 2;
+
+        size_t s = int(scale);
+        if (scale - s >= 0.5)
+            s += 1;
+        s *= precision;
+
+        size_t smod = s % (12 * precision); // 音階
+        size_t soct = s / (12 * precision); // オクターブ
 
         return Note{value[smod], soct};
     }

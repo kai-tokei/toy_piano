@@ -20,7 +20,7 @@ void Main()
 		input_timer += Scene::DeltaTime();
 
 		buffer = notes;
-		notes = toyPiano.analize();
+		notes = toyPiano.analyze();
 		for (Note note : notes)
 		{
 			if (note == Note{U"A", 0})
