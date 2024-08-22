@@ -31,8 +31,7 @@ public:
         for (auto i : step(1200))
         {
             const float size = Pow(fft.buffer[i], 0.6f) * 1200;
-            // RectF{Arg::bottomLeft(i, 600), 1, size}.draw(HSV{240 - i});
-            // RectF{Arg::bottomLeft(i, 600), 1, size}.draw(HSV{i / 2});
+            RectF{Arg::bottomLeft(i, 600), 1, size}.draw(HSV{240 - i});
             if (max_freq < size && size > cut_filter)
             {
                 max_freq_size = size;
@@ -44,7 +43,12 @@ public:
                 is_down = true;
             }
         }
-        // Rect{0, 600 - cut_filter, 800, 2}.draw();
+        for (auto i : step(88))
+        {
+            const float x = 27.500 * Pow(Pow(2, 1.0 / 12.0), i);
+            Line{x, 0, x, 800}.draw(2);
+        }
+        Rect{0, 600 - cut_filter, 800, 2}.draw();
 
         Note note = convertScaleToString(convertHertzToScale(max_freq * fft.resolution));
         note.size = max_freq_size;
